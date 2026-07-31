@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Attendance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f141b;
+      --panel: #161d26;
+      --panel-2: #1b232e;
+      --line: #262f3b;
+      --line-soft: #1e2632;
+      --text: #eceef2;
+      --text-dim: #8993a4;
+      --text-faint: #4f5867;
+      --safe: #6fa88a;
+      --warn: #d8a94e;
+      --danger: #c4593f;
+      --primary: #6fa0c4;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+    }
+
+    body {
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 28px 28px;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      min-height: 100vh;
+    }
+
+    input:focus,
+    button:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 1px;
+    }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    .wrap {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 24px 18px 60px;
+    }
+
+    .auth-shell {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 340px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 26px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .auth-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .14em;
+      color: var(--text-faint);
+      text-transform: uppercase;
+    }
+
+    .auth-title {
+      font-family: 'Fraunces', serif;
+      font-size: 24px;
+      font-weight: 500;
+      margin: 2px 0 4px;
+    }
+
+    .auth-sub {
+      font-size: 12.5px;
+      color: var(--text-dim);
+      margin: 0 0 6px;
+      line-height: 1.4;
+    }
+
+    .auth-input {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 13.5px;
+      padding: 11px 12px;
+      width: 100%;
+    }
+
+    .auth-submit {
+      margin-top: 2px;
+      padding: 11px 0;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: var(--primary);
+      color: #0f141b;
+      font-size: 13.5px;
+      font-weight: 700;
+    }
+
+    .auth-submit:disabled {
+      opacity: .5;
+      cursor: default;
+    }
+
+    .auth-toggle {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 12.5px;
+      cursor: pointer;
+      text-align: center;
+      padding: 2px;
+    }
+
+    .auth-msg {
+      font-size: 12px;
+      border-radius: 8px;
+      padding: 9px 10px;
+      line-height: 1.4;
+    }
+
+    .auth-msg.error {
+      color: var(--danger);
+      background: rgba(196, 89, 63, .1);
+      border: 1px solid rgba(196, 89, 63, .3);
+    }
+
+    .auth-msg.info {
+      color: var(--safe);
+      background: rgba(111, 168, 138, .1);
+      border: 1px solid rgba(111, 168, 138, .3);
+    }
+
+    /* ---------- app chrome ---------- */
+    .userbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .userbar .email {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11.5px;
+      color: var(--text-faint);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .signout-btn {
+      background: none;
+      border: 1px solid var(--line);
+      color: var(--text-dim);
+      border-radius: 7px;
+      padding: 6px 10px;
+      font-size: 11.5px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .signout-btn:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      gap: 12px;
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .14em;
+      color: var(--text-faint);
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-family: 'Fraunces', serif;
+      font-size: 28px;
+      font-weight: 500;
+      margin: 2px 0 0;
+    }
+
+    .addbtn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--primary);
+      background: transparent;
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .addbtn.active {
+      background: rgba(111, 160, 196, .14);
+    }
+
+    .addbtn:hover {
+      background: rgba(111, 160, 196, .14);
+    }
+
+    .status-banner {
+      font-size: 11px;
+      color: var(--warn);
+      background: rgba(216, 169, 78, .1);
+      border: 1px solid rgba(216, 169, 78, .3);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 16px;
+    }
+
+    .overall {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px 22px;
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .overall-text {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .overall-label {
+      font-size: 11px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+    }
+
+    .overall-main {
+      font-family: 'Fraunces', serif;
+      font-size: 15px;
+    }
+
+    .overall-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .empty {
+      border: 1px dashed var(--line);
+      border-radius: 14px;
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+    }
+
+    .card .remove {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: none;
+      border: none;
+      color: var(--text-faint);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      line-height: 0;
+    }
+
+    .card .remove:hover {
+      color: var(--danger);
+      background: rgba(196, 89, 63, .1);
+    }
+
+    .card-head {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .card-name {
+      font-family: 'Fraunces', serif;
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 150px;
+    }
+
+    .tag {
+      display: inline-block;
+      margin-top: 5px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      border-radius: 20px;
+      padding: 2px 8px;
+    }
+
+    .tag.theory {
+      color: var(--text-dim);
+      border: 1px solid var(--line);
+    }
+
+    .tag.lab {
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+
+    .steppers {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-top: 1px solid var(--line-soft);
+      padding-top: 10px;
+    }
+
+    .stepper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .stepper .label {
+      font-size: 12px;
+      color: var(--text-dim);
+      width: 58px;
+      flex-shrink: 0;
+    }
+
+    .stepper .controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stepbtn {
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      touch-action: manipulation;
+    }
+
+    .stepbtn:hover {
+      border-color: var(--primary);
+      color: var(--text);
+    }
+
+    .stepbtn:active {
+      transform: scale(0.94);
+    }
+
+    .stepval {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
+      width: 26px;
+      text-align: center;
+    }
+
+    .minrow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--line-soft);
+      padding-top: 10px;
+    }
+
+    .minrow .lbl {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .mininput-wrap {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .mininput {
+      width: 44px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      text-align: right;
+      padding: 4px 5px;
+    }
+
+    .pct-sign {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    .message {
+      font-size: 12.5px;
+      font-weight: 500;
+      background: var(--panel-2);
+      border-radius: 8px;
+      padding: 9px 10px;
+      line-height: 1.35;
+    }
+
+    .ring-wrap {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .ring-num {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .ring-num .n {
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 600;
+      color: var(--text);
+      display: block;
+      line-height: 1;
+    }
+
+    .ring-num .l {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      color: var(--text-faint);
+      display: block;
+      margin-top: 2px;
+    }
+
+    .panel-form {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+      max-width: 340px;
+    }
+
+    .panel-form-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-form-head span {
+      font-family: 'Fraunces', serif;
+      font-size: 15px;
+    }
+
+    .panel-form-head button {
+      background: none;
+      border: none;
+      color: var(--text-faint);
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .panel-form input[type=text] {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 13px;
+      padding: 10px;
+      width: 100%;
+    }
+
+    .type-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .type-btn {
+      flex: 1;
+      padding: 8px 0;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: capitalize;
+      letter-spacing: .03em;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text-dim);
+    }
+
+    .type-btn.active {
+      border-color: var(--primary);
+      background: rgba(111, 160, 196, .12);
+      color: var(--primary);
+    }
+
+    .submit-btn {
+      margin-top: 2px;
+      padding: 11px 0;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: var(--primary);
+      color: #0f141b;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .submit-btn:active {
+      transform: scale(0.98);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width:480px) {
+      .wrap {
+        padding: 16px 12px 48px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .topbar {
+        align-items: center;
+      }
+
+      .addbtn {
+        padding: 9px 12px;
+        font-size: 12.5px;
+      }
+
+      .overall {
+        padding: 16px;
+        gap: 16px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-form {
+        max-width: 100%;
+      }
+
+      .card-name {
+        max-width: 120px;
+      }
+
+      .userbar .email {
+        max-width: 140px;
+      }
+    }
+
+    @media (min-width:481px) and (max-width:700px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+
+<body>
+
+  <div class="auth-shell" id="authShell">
+    <div class="auth-card">
+      <div>
+        <div class="auth-eyebrow">Register</div>
+        <div class="auth-title" id="authTitle">Sign in</div>
+        <p class="auth-sub" id="authSub">Use your college email to track attendance across every device.</p>
+      </div>
+      <div id="authMsgMount"></div>
+      <input class="auth-input" type="email" id="authEmail" placeholder="you@college.edu" autocomplete="email" />
+      <input class="auth-input" type="password" id="authPassword" placeholder="Password"
+        autocomplete="current-password" />
+      <button class="auth-submit" id="authSubmitBtn" onclick="AUTH.submit()">Sign in</button>
+      <button class="auth-toggle" id="authToggleBtn" onclick="AUTH.toggleMode()">New here? Create an account</button>
+    </div>
+  </div>
+
+  <div class="wrap hidden" id="appShell">
+    <div class="userbar">
+      <span class="email" id="userEmailLabel"></span>
+      <button class="signout-btn" onclick="AUTH.signOut()">Sign out</button>
+    </div>
+
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">Register</div>
+        <h1>Attendance</h1>
+      </div>
+      <button class="addbtn" id="addToggleBtn" onclick="toggleAddForm()">+ Add subject</button>
+    </div>
+
+    <div id="statusMount"></div>
+
+    <div class="overall" id="overallCard"></div>
+
+    <div id="addFormMount"></div>
+
+    <div id="mainMount"></div>
+  </div>
+
+  <script>
+    (function () {
+      var SUPABASE_URL = 'https://byyqberijkaxwpabvxzn.supabase.co';
+      var SUPABASE_ANON_KEY = 'sb_publishable_OlATVmqspjBqRuS1iOX5ZA_P_cbmNOP';
+
+      var supabase = null;
+      var configured = SUPABASE_URL.indexOf('YOUR_') !== 0 && SUPABASE_ANON_KEY.indexOf('YOUR_') !== 0;
+      if (configured && window.supabase) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+
+      var subjects = [];
+      var loaded = false;
+      var showAdd = false;
+      var currentUser = null;
+      var authMode = 'signin';
+
+      function showAuthMsg(msg, kind) {
+        var mount = document.getElementById('authMsgMount');
+        if (!msg) { mount.innerHTML = ''; return; }
+        mount.innerHTML = '<div class="auth-msg ' + (kind || 'error') + '">' + msg + '</div>';
+      }
+
+      window.AUTH = {
+        toggleMode: function () {
+          authMode = authMode === 'signin' ? 'signup' : 'signin';
+          showAuthMsg(null);
+          if (authMode === 'signup') {
+            document.getElementById('authTitle').textContent = 'Create account';
+            document.getElementById('authSub').textContent = 'One account works across your phone, laptop, and any browser.';
+            document.getElementById('authSubmitBtn').textContent = 'Sign up';
+            document.getElementById('authToggleBtn').textContent = 'Already have an account? Sign in';
+            document.getElementById('authPassword').setAttribute('autocomplete', 'new-password');
+          } else {
+            document.getElementById('authTitle').textContent = 'Sign in';
+            document.getElementById('authSub').textContent = 'Use your college email to track attendance across every device.';
+            document.getElementById('authSubmitBtn').textContent = 'Sign in';
+            document.getElementById('authToggleBtn').textContent = 'New here? Create an account';
+            document.getElementById('authPassword').setAttribute('autocomplete', 'current-password');
+          }
+        },
+
+        submit: async function () {
+          if (!configured) { showAuthMsg("Supabase isn't configured yet — paste your Project URL and anon key into the script."); return; }
+          var email = document.getElementById('authEmail').value.trim();
+          var password = document.getElementById('authPassword').value;
+          if (!email || !password) { showAuthMsg('Enter both email and password.'); return; }
+
+          var btn = document.getElementById('authSubmitBtn');
+          btn.disabled = true;
+          showAuthMsg(null);
+
+          try {
+            if (authMode === 'signup') {
+              var res = await supabase.auth.signUp({ email: email, password: password });
+              if (res.error) throw res.error;
+              if (res.data.session) {
+                onSignedIn(res.data.session.user);
+              } else {
+                showAuthMsg('Check your inbox to confirm your email, then sign in.', 'info');
+              }
+            } else {
+              var res2 = await supabase.auth.signInWithPassword({ email: email, password: password });
+              if (res2.error) throw res2.error;
+              onSignedIn(res2.data.user);
+            }
+          } catch (e) {
+            showAuthMsg(e.message || 'Something went wrong.');
+          }
+          btn.disabled = false;
+        },
+
+        signOut: async function () {
+          if (configured) {
+            try { await supabase.auth.signOut(); } catch (e) { /* ignore */ }
+          }
+          currentUser = null;
+          subjects = [];
+          showAdd = false;
+          document.getElementById('appShell').classList.add('hidden');
+          document.getElementById('authShell').classList.remove('hidden');
+          document.getElementById('authEmail').value = '';
+          document.getElementById('authPassword').value = '';
+        }
+      };
+
+      function onSignedIn(user) {
+        currentUser = user;
+        document.getElementById('authShell').classList.add('hidden');
+        document.getElementById('appShell').classList.remove('hidden');
+        document.getElementById('userEmailLabel').textContent = user.email;
+        loadData();
+      }
+
+      async function checkExistingSession() {
+        if (!configured) {
+
+          showAuthMsg("Supabase isn't configured yet — paste your Project URL and anon key into the script, then reload.");
+          return;
+        }
+        try {
+          var res = await supabase.auth.getSession();
+          if (res.data.session) {
+            onSignedIn(res.data.session.user);
+          }
+        } catch (e) { }
+      }
+
+
+      function showStatus(msg, isError) {
+        var mount = document.getElementById('statusMount');
+        if (!msg) { mount.innerHTML = ''; return; }
+        mount.innerHTML = '<div class="status-banner" style="' +
+          (isError ? 'color:var(--danger);background:rgba(196,89,63,.1);border-color:rgba(196,89,63,.3);' : '') +
+          '">' + msg + '</div>';
+      }
+
+
+      function rowToLocal(r) {
+        return { id: r.id, name: r.name, type: r.type, min: r.min_attendance, attended: r.attended, missed: r.missed };
+      }
+
+
+      async function loadData() {
+        try {
+          var res = await supabase.from('subjects').select('*').order('created_at', { ascending: true });
+          if (res.error) throw res.error;
+          subjects = res.data.map(rowToLocal);
+          showStatus(null);
+        } catch (e) {
+          showStatus("Couldn't reach Supabase: " + e.message, true);
+        }
+        loaded = true;
+        render();
+      }
+
+
+      function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+
+      function calc(attended, missed, min) {
+        var total = attended + missed;
+        if (total === 0) return { pct: null, total: 0, canMiss: null, mustAttend: null, status: 'empty' };
+        var pct = (attended / total) * 100;
+        if (min >= 100) {
+          if (missed > 0) return { pct: pct, total: total, canMiss: 0, mustAttend: Infinity, status: 'impossible' };
+          return { pct: pct, total: total, canMiss: 0, mustAttend: 0, status: pct >= 100 ? 'safe' : 'impossible' };
+        }
+        if (pct >= min) {
+          var canMiss = Math.floor((attended * 100 - min * total) / min);
+          if (canMiss < 0) canMiss = 0;
+          return { pct: pct, total: total, canMiss: canMiss, mustAttend: 0, status: canMiss === 0 ? 'warn' : 'safe' };
+        } else {
+          var mustAttend = Math.ceil((min * total - attended * 100) / (100 - min));
+          return { pct: pct, total: total, canMiss: 0, mustAttend: mustAttend, status: 'danger' };
+        }
+      }
+
+      function statusColor(status) {
+        if (status === 'safe') return 'var(--safe)';
+        if (status === 'warn') return 'var(--warn)';
+        if (status === 'danger' || status === 'impossible') return 'var(--danger)';
+        return 'var(--text-faint)';
+      }
+
+
+      function ringSVG(pct, min, size, stroke, big) {
+        size = size || 76; stroke = stroke || 7;
+        var r = (size - stroke) / 2;
+        var c = 2 * Math.PI * r;
+        var p = pct === null ? 0 : clamp(pct, 0, 100);
+        var dash = (p / 100) * c;
+        var ringColor = pct === null ? 'var(--line)' : (pct >= min ? 'var(--safe)' : (pct >= min - 10 ? 'var(--warn)' : 'var(--danger)'));
+        var minFrac = clamp(min, 0, 100) / 100;
+        var minAngle = minFrac * 360 - 90;
+        var rad = minAngle * Math.PI / 180;
+        var cx = size / 2, cy = size / 2;
+        var tickInner = r - stroke / 2 - 1;
+        var tickOuter = r + stroke / 2 + 3;
+        var tx1 = cx + tickInner * Math.cos(rad), ty1 = cy + tickInner * Math.sin(rad);
+        var tx2 = cx + tickOuter * Math.cos(rad), ty2 = cy + tickOuter * Math.sin(rad);
+
+        var progressCircle = pct !== null ? (
+          '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + ringColor + '" stroke-width="' + stroke + '" ' +
+          'stroke-dasharray="' + dash + ' ' + (c - dash) + '" stroke-linecap="round" transform="rotate(-90 ' + cx + ' ' + cy + ')" ' +
+          'style="transition:stroke-dasharray .35s ease, stroke .35s ease"/>'
+        ) : '';
+
+        return (
+          '<svg width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + ' ' + size + '" style="overflow:visible;flex-shrink:0;">' +
+          '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="var(--line)" stroke-width="' + stroke + '"/>' +
+          progressCircle +
+          '<line x1="' + tx1 + '" y1="' + ty1 + '" x2="' + tx2 + '" y2="' + ty2 + '" stroke="var(--text-faint)" stroke-width="1.5"/>' +
+          '</svg>'
+        );
+      }
+
+      function ringWithLabel(pct, min, size, stroke, big) {
+        var numSize = big ? 22 : 15;
+        var lblSize = big ? 10 : 8;
+        var numText = pct === null ? '—' : Math.round(pct);
+        return (
+          '<div class="ring-wrap">' +
+          ringSVG(pct, min, size, stroke, big) +
+          '<div class="ring-num">' +
+          '<span class="n" style="font-size:' + numSize + 'px;">' + numText + '</span>' +
+          (pct !== null ? '<span class="l" style="font-size:' + lblSize + 'px;">PCT</span>' : '') +
+          '</div>' +
+          '</div>'
+        );
+      }
+
+
+      function render() {
+        renderOverall();
+        renderAddForm();
+        renderMain();
+      }
+
+      function renderOverall() {
+        var withData = subjects.filter(function (s) { return (s.attended + s.missed) > 0; });
+        var overallPct = withData.length
+          ? withData.reduce(function (sum, s) { return sum + (s.attended / (s.attended + s.missed)) * 100; }, 0) / withData.length
+          : null;
+        var totalAttended = subjects.reduce(function (a, s) { return a + s.attended; }, 0);
+        var totalClasses = subjects.reduce(function (a, s) { return a + s.attended + s.missed; }, 0);
+        var avgMin = subjects.length ? subjects.reduce(function (a, s) { return a + s.min; }, 0) / subjects.length : 75;
+
+        var mainText = overallPct === null
+          ? 'No data yet'
+          : overallPct.toFixed(1) + '% average across ' + withData.length + ' subject' + (withData.length !== 1 ? 's' : '');
+
+        document.getElementById('overallCard').innerHTML =
+          ringWithLabel(overallPct, avgMin, 92, 8, true) +
+          '<div class="overall-text">' +
+          '<span class="overall-label">Overall attendance</span>' +
+          '<span class="overall-main">' + mainText + '</span>' +
+          '<span class="overall-sub">' + totalAttended + ' / ' + totalClasses + ' classes logged</span>' +
+          '</div>';
+      }
+
+      var addFormType = 'theory';
+
+      function renderAddForm() {
+        var mount = document.getElementById('addFormMount');
+        if (!showAdd) { mount.innerHTML = ''; document.getElementById('addToggleBtn').classList.remove('active'); return; }
+        document.getElementById('addToggleBtn').classList.add('active');
+        document.getElementById('addToggleBtn').textContent = '+ Add subject';
+
+        mount.innerHTML =
+          '<div class="panel-form">' +
+          '<div class="panel-form-head"><span>New subject</span><button onclick="AT.closeAdd()">&#10005;</button></div>' +
+          '<input type="text" id="newSubjectName" placeholder="Subject name" maxlength="40"/>' +
+          '<div class="type-row">' +
+          '<button type="button" class="type-btn ' + (addFormType === 'theory' ? 'active' : '') + '" onclick="AT.setType(\'theory\')">Theory</button>' +
+          '<button type="button" class="type-btn ' + (addFormType === 'lab' ? 'active' : '') + '" onclick="AT.setType(\'lab\')">Lab</button>' +
+          '</div>' +
+          '<div class="minrow" style="border-top:none; padding-top:0;">' +
+          '<span class="lbl">Min attendance required</span>' +
+          '<div class="mininput-wrap"><input class="mininput" type="number" id="newSubjectMin" min="0" max="100" value="75"/><span class="pct-sign">%</span></div>' +
+          '</div>' +
+          '<button class="submit-btn" onclick="AT.submitAdd()">Add subject</button>' +
+          '</div>';
+
+        var nameInput = document.getElementById('newSubjectName');
+        nameInput.focus();
+        nameInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') AT.submitAdd(); });
+      }
+
+      function renderMain() {
+        var mount = document.getElementById('mainMount');
+        if (subjects.length === 0) {
+          mount.innerHTML = showAdd ? '' : '<div class="empty">No subjects yet. Add your first one to start tracking.</div>';
+          return;
+        }
+        var html = '<div class="grid">';
+        subjects.forEach(function (s) { html += cardHTML(s); });
+        html += '</div>';
+        mount.innerHTML = html;
+      }
+
+      function cardHTML(s) {
+        var r = calc(s.attended, s.missed, s.min);
+        var color = statusColor(r.status);
+        var message;
+        if (r.status === 'empty') message = 'No classes logged yet';
+        else if (r.status === 'impossible') message = s.missed > 0 ? "100% is no longer reachable" : "Can't miss a single class";
+        else if (r.status === 'danger') message = 'Attend next ' + r.mustAttend + ' in a row to reach ' + s.min + '%';
+        else if (r.status === 'warn') message = "On the edge — can't miss any";
+        else message = 'Can afford to miss ' + r.canMiss + ' more';
+
+        var safeName = s.name.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        return (
+          '<div class="card">' +
+          '<button class="remove" onclick="AT.removeSubject(\'' + s.id + '\')" aria-label="remove subject">&#10005;</button>' +
+          '<div class="card-head">' +
+          ringWithLabel(r.pct, s.min, 76, 7, false) +
+          '<div style="min-width:0;">' +
+          '<div class="card-name">' + safeName + '</div>' +
+          '<span class="tag ' + s.type + '">' + s.type + '</span>' +
+          '</div>' +
+          '</div>' +
+          '<div class="steppers">' +
+          stepperHTML(s.id, 'attended', 'Present', s.attended, 'var(--safe)') +
+          stepperHTML(s.id, 'missed', 'Absent', s.missed, 'var(--danger)') +
+          '</div>' +
+          '<div class="minrow">' +
+          '<span class="lbl">Min required</span>' +
+          '<div class="mininput-wrap">' +
+          '<input class="mininput" type="number" min="0" max="100" value="' + s.min + '" onchange="AT.setMin(\'' + s.id + '\', this.value)"/>' +
+          '<span class="pct-sign">%</span>' +
+          '</div>' +
+          '</div>' +
+          '<div class="message" style="color:' + color + ';">' + message + '</div>' +
+          '</div>'
+        );
+      }
+
+      function stepperHTML(id, field, label, value, tint) {
+        return (
+          '<div class="stepper">' +
+          '<span class="label">' + label + '</span>' +
+          '<div class="controls">' +
+          '<button class="stepbtn" onclick="AT.step(\'' + id + '\',\'' + field + '\',-1)" aria-label="decrease ' + label + '">&#8722;</button>' +
+          '<span class="stepval" style="color:' + tint + ';">' + value + '</span>' +
+          '<button class="stepbtn" onclick="AT.step(\'' + id + '\',\'' + field + '\',1)" aria-label="increase ' + label + '">&#43;</button>' +
+          '</div>' +
+          '</div>'
+        );
+      }
+
+
+      function toggleAddForm() { showAdd = !showAdd; render(); }
+
+      window.AT = {
+        setType: function (t) { addFormType = t; renderAddForm(); },
+        closeAdd: function () { showAdd = false; render(); },
+
+        submitAdd: async function () {
+          var nameInput = document.getElementById('newSubjectName');
+          var minInput = document.getElementById('newSubjectMin');
+          var name = nameInput.value.trim();
+          if (!name) { nameInput.focus(); return; }
+          var min = clamp(parseInt(minInput.value || '0', 10), 0, 100);
+          try {
+
+            var res = await supabase.from('subjects')
+              .insert([{ name: name, type: addFormType, min_attendance: min, attended: 0, missed: 0 }])
+              .select();
+            if (res.error) throw res.error;
+            subjects.push(rowToLocal(res.data[0]));
+            showStatus(null);
+          } catch (e) {
+            showStatus("Couldn't add subject: " + e.message, true);
+          }
+          addFormType = 'theory';
+          showAdd = false;
+          render();
+        },
+
+        removeSubject: async function (id) {
+          var prev = subjects;
+          subjects = subjects.filter(function (s) { return s.id !== id; });
+          render();
+          try {
+            var res = await supabase.from('subjects').delete().eq('id', id);
+            if (res.error) throw res.error;
+            showStatus(null);
+          } catch (e) {
+            subjects = prev;
+            showStatus("Couldn't delete: " + e.message, true);
+            render();
+          }
+        },
+
+        step: async function (id, field, delta) {
+          var s = subjects.find(function (x) { return x.id === id; });
+          if (!s) return;
+          var prevVal = s[field];
+          s[field] = Math.max(0, s[field] + delta);
+          render();
+          var patch = {};
+          patch[field] = s[field];
+          try {
+            var res = await supabase.from('subjects').update(patch).eq('id', id);
+            if (res.error) throw res.error;
+            showStatus(null);
+          } catch (e) {
+            s[field] = prevVal;
+            showStatus("Couldn't save change: " + e.message, true);
+            render();
+          }
+        },
+
+        setMin: async function (id, val) {
+          var s = subjects.find(function (x) { return x.id === id; });
+          if (!s) return;
+          var prevMin = s.min;
+          s.min = clamp(parseInt(val || '0', 10), 0, 100);
+          render();
+          try {
+            var res = await supabase.from('subjects').update({ min_attendance: s.min }).eq('id', id);
+            if (res.error) throw res.error;
+            showStatus(null);
+          } catch (e) {
+            s.min = prevMin;
+            showStatus("Couldn't save change: " + e.message, true);
+            render();
+          }
+        }
+      };
+
+      window.toggleAddForm = toggleAddForm;
+      document.getElementById('authPassword').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') AUTH.submit();
+      });
+
+      checkExistingSession();
+    })();
+  </script>
+</body>
+
+</html>
